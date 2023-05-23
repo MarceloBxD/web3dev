@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Meta Mask Test</title>
+  </head>
+  <body>
+    <div class="flex-col">
+      <img src="./images/metamask.png" alt="metamask_img" />
+      <button onclick="getbalance()">Login w/ Metamask</button>
+      <p id="text">A conta pertence ao usuário: <span id="account"></span></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.7/web3.min.js"></script>
+    <script>
+      async function getbalance() {
+        if (typeof web3 != undefined) {
+          var web3 = new Web3(window.ethereum);
+          try {
+            const eth = window.ethereum;
+            const accounts = await eth.request({
+              method: "eth_requestAccounts",
+            });
+            const mainAccount = accounts[0];
+
+            if (mainAccount) {
+              document.getElementById("account").innerHTML = mainAccount;
+              // setar o style para display block
+              document.getElementById("text").style.display = "block";
+              document.getElementById("account").style.display = "block";
+            }
+
+            // depois de recuperar a conta do usuário, vamos assinar a carteira para comprovar a autenticidade
+            const accountVerification = await eth.request({
+              method: "personal_sign",
+              params: ["Eu sou o dono da conta", mainAccount],
+            });
+
+            try {
+              const recept = web3.eth.sendTransaction({
+                from: mainAccount,
+                to: "0x03A4435c7F9036927D131fDcc911F1a37ea63639",
+                value: "1000000000000000000",
+              });
+
+              console.log(recept);
+            } catch (err) {
+              console.log(err);
+            }
+
+            // Na teoria enviariamos esses dados para o backend e lá faríamos a verificação
+            console.log(
+              web3.eth.accounts.recover(
+                "Eu sou o dono da conta",
+                accountVerification
+              )
+            );
+            console.log(mainAccount);
+          } catch (err) {
+            console.log("MetaMask isn't installed!");
+          }
+        } else {
+          console.log("MetaMask is not installed");
+        }
+      }
+    </script>
+  </body>
+</html>
